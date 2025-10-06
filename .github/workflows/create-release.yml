@@ -46,11 +46,6 @@ jobs:
           done
           git push origin release/${{ github.event.inputs.release_name }}
 
-      - name: Autenticar CLI do GitHub
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
       - name: Criar release no GitHub
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
