@@ -12,6 +12,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: write  # Permite push e criação de release com GITHUB_TOKEN
+
 jobs:
   merge-e-release:
     runs-on: ubuntu-latest
@@ -19,7 +22,7 @@ jobs:
       - name: Checkout completo do repositório
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Traz todo o histórico e todos os branches
+          fetch-depth: 0  # Traz todos os branches e histórico
 
       - name: Configurar Git
         run: |
@@ -38,9 +41,15 @@ jobs:
           for id in "${IDS[@]}"; do
             BRANCH="feature/$id"
             echo "Fazendo merge da branch $BRANCH"
+            git fetch origin $BRANCH
             git merge origin/$BRANCH --no-ff -m "Merge $BRANCH na release"
           done
           git push origin release/${{ github.event.inputs.release_name }}
+
+      - name: Autenticar CLI do GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       - name: Criar release no GitHub
         env: 
