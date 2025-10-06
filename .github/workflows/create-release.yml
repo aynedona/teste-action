@@ -44,6 +44,10 @@ jobs:
             git fetch origin $BRANCH
             git merge origin/$BRANCH --no-ff -m "Merge $BRANCH na release"
           done
+
+          # Tenta rebase com o remoto antes do push
+          git fetch origin release/${{ github.event.inputs.release_name }} || echo "Branch remoto ainda não existe"
+          git pull origin release/${{ github.event.inputs.release_name }} --rebase || echo "Sem histórico remoto, seguindo com push"
           git push origin release/${{ github.event.inputs.release_name }}
 
       - name: Criar release no GitHub
