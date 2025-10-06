@@ -22,8 +22,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          cd $(basename "${{ github.repository }}")
+          REPO_NAME=$(basename "${{ github.repository }}")
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
+          echo "Repositório clonado em $REPO_NAME"
+          echo "cd $REPO_NAME" >> $GITHUB_ENV
+          # cd $(basename "${{ github.repository }}")
 
       - name: Configurar Git
         run: |
@@ -31,11 +34,13 @@ jobs:
           git config --global user.email "github-actions@github.com"
 
       - name: Criar branch de release
+        working-directory: ${{ env.REPO_NAME }}
         run: |
           git fetch --all
           git checkout -b release/${{ github.event.inputs.release_name }} origin/main
 
       - name: Fazer merge das branchs informadas
+        working-directory: ${{ env.REPO_NAME }}
         run: |
           IFS=',' read -ra IDS <<< "${{ github.event.inputs.historias }}"
           for id in "${IDS[@]}"; do
@@ -46,6 +51,7 @@ jobs:
           git push origin release/${{ github.event.inputs.release_name }}
 
       - name: Criar release no GitHub
+        working-directory: ${{ env.REPO_NAME }}
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
