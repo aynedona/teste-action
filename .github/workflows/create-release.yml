@@ -16,23 +16,6 @@ jobs:
   merge-e-release:
     runs-on: ubuntu-latest
     steps:
-      # - name: Checkout do repositório
-      #   uses: actions/checkout@v3
-      # - name: Clonar repositório manualmente
-      #   env:
-      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      #   run: |
-      #     REPO_NAME=$(basename "${{ github.repository }}")          
-      #     echo "$REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-      #     git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
-        # echo "Repositório clonado em $REPO_NAME"
-        # cd $(basename "${{ github.repository }}")
-
-      - name: Configurar Git
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-
       - name: Clonar repositório manualmente
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,23 +23,20 @@ jobs:
           REPO_NAME=$(basename "${{ github.repository }}")
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
-      
-      - name: Verificar clone
-        run: |
-          ls -la
-          ls -la ${{ env.REPO_NAME }}
-      
-      - name: Criar branch de release
-        working-directory: ${{ env.REPO_NAME }}
-        run: |
+          cd "$REPO_NAME"
           git fetch --all
-          git checkout -b release/${{ github.event.inputs.release_name }} origin/main
 
-      - name: Criar branch de release
+      - name: Configurar Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Detectar branch principal e criar branch de release
         working-directory: ${{ env.REPO_NAME }}
         run: |
-          git fetch --all
-          git checkout -b release/${{ github.event.inputs.release_name }} origin/main
+          DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+          echo "Branch principal detectado: $DEFAULT_BRANCH"
+          git checkout -b release/${{ github.event.inputs.release_name }} origin/$DEFAULT_BRANCH
 
       - name: Fazer merge das branchs informadas
         working-directory: ${{ env.REPO_NAME }}
@@ -75,5 +55,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create release/${{ github.event.inputs.release_name }} \
-            --title "Release ${{ github.event.inputs.release_name }} \
+            --title "Release ${{ github.event.inputs.release_name }}" \
             --notes "Release com histórias: ${{ github.event.inputs.historias }}"
