@@ -16,15 +16,10 @@ jobs:
   merge-e-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Clonar repositório manualmente
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO_NAME=$(basename "${{ github.repository }}")
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
-          cd "$REPO_NAME"
-          git fetch --all
+      - name: Checkout completo do repositório
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Traz todo o histórico e todos os branches
 
       - name: Configurar Git
         run: |
@@ -32,14 +27,12 @@ jobs:
           git config --global user.email "github-actions@github.com"
 
       - name: Detectar branch principal e criar branch de release
-        working-directory: ${{ env.REPO_NAME }}
         run: |
           DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
           echo "Branch principal detectado: $DEFAULT_BRANCH"
           git checkout -b release/${{ github.event.inputs.release_name }} origin/$DEFAULT_BRANCH
 
       - name: Fazer merge das branchs informadas
-        working-directory: ${{ env.REPO_NAME }}
         run: |
           IFS=',' read -ra IDS <<< "${{ github.event.inputs.historias }}"
           for id in "${IDS[@]}"; do
@@ -50,7 +43,6 @@ jobs:
           git push origin release/${{ github.event.inputs.release_name }}
 
       - name: Criar release no GitHub
-        working-directory: ${{ env.REPO_NAME }}
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
