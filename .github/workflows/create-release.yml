@@ -22,10 +22,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
-          REPO_NAME=$(basename "${{ github.repository }}")
+          REPO_NAME=$(basename "${{ github.repository }}")          
+          echo "$REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
-          echo "Repositório clonado em $REPO_NAME"
-          echo "cd $REPO_NAME" >> $GITHUB_ENV
+        # echo "Repositório clonado em $REPO_NAME"
         # cd $(basename "${{ github.repository }}")
 
       - name: Configurar Git
