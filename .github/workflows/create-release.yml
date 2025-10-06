@@ -18,13 +18,13 @@ jobs:
     steps:
       # - name: Checkout do repositório
       #   uses: actions/checkout@v3
-      - name: Clonar repositório manualmente
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          REPO_NAME=$(basename "${{ github.repository }}")          
-          echo "$REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
+      # - name: Clonar repositório manualmente
+      #   env:
+      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      #   run: |
+      #     REPO_NAME=$(basename "${{ github.repository }}")          
+      #     echo "$REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+      #     git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
         # echo "Repositório clonado em $REPO_NAME"
         # cd $(basename "${{ github.repository }}")
 
@@ -32,6 +32,25 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
+
+      - name: Clonar repositório manualmente
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO_NAME=$(basename "${{ github.repository }}")
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$REPO_NAME"
+      
+      - name: Verificar clone
+        run: |
+          ls -la
+          ls -la ${{ env.REPO_NAME }}
+      
+      - name: Criar branch de release
+        working-directory: ${{ env.REPO_NAME }}
+        run: |
+          git fetch --all
+          git checkout -b release/${{ github.event.inputs.release_name }} origin/main
 
       - name: Criar branch de release
         working-directory: ${{ env.REPO_NAME }}
